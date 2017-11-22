@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+var pdfPrint = require('../pdf-print');
+var libDebug = require('debug')('impresora-pdf:server');
+var libHttp  = require('http');
+
+var httpPort = process.env.PORT || '3000';
+pdfPrint.set('port', httpPort);
+
+var httpServ = libHttp.createServer(pdfPrint);
+httpServ.listen(httpPort);
