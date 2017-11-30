@@ -1,9 +1,9 @@
-var exprss = require('express');
-var router = exprss.Router();
-var uniqid = require('uniqid');
+var exprss  = require('express');
+var router  = exprss.Router();
+var uniqid  = require('uniqid');
 var fileSys = require('fs');
-var htmlPdf= require('html-pdf');
-var libPath= require('path');
+var htmlPdf = require('html-pdf');
+var libPath = require('path');
 
 router.get('/', (rq, rs, n)=>{
   rs.send('Impresora PDF');
@@ -29,8 +29,8 @@ router.get('/download/:pdffile/:pdfname?',(rq,rs,n)=>{
 });
 
 router.post('/', (rq, rs, n)=>{
-  file = 'download/pdf' + uniqid();
-  html = rq.body;
+  let file = 'download/pdf' + uniqid();
+  let html = rq.body;
   if(typeof(html)!='string'){
     json = {result:false,rows:'No se pudo crear el archivo pdf.'};
     rs.send(json);
@@ -57,7 +57,5 @@ router.post('/', (rq, rs, n)=>{
     });
   }
 });
-
-
 
 module.exports = router;
