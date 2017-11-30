@@ -19,7 +19,7 @@ pdfPrint.use(function(rq, rs, n) {
 pdfPrint.use(libLogg('dev'));
 pdfPrint.use(function(rq, rs, n) {
   rs.header("Access-Control-Allow-Origin", "*");
-  rs.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  rs.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept");
   n();
 });
 pdfPrint.use('/',router);

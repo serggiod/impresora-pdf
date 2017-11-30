@@ -51,7 +51,7 @@ router.post('/', (rq, rs, n)=>{
     htmlPdf
     .create(html,config)
     .toFile(libPath.join(__dirname,'/../',file + '.pdf'),(e,r)=>{
-      if(e===null) json = {result:true,rows:'http:\/\/' + rq.headers.host + '/' + file + '/file-name.pdf'};
+      if(e===null) json = {result:true,rows:'https:\/\/' + rq.headers.host + '/impresora-pdf/' + file + '/file-name.pdf'};
       else json = {result:false,rows:'No se pudo crear el archivo pdf.'};
       rs.send(json);
     });
