@@ -31,6 +31,10 @@ router.get('/download/:pdffile/:pdfname?',(rq,rs,n)=>{
 router.post('/', (rq, rs, n)=>{
   let file = 'download/pdf' + uniqid();
   let html = rq.body;
+  let user = rq.get('Pragma-User');
+  let pass = rq.get('Pragma-Pass');
+  console.log(user,pass);
+if(user==='printuser' && pass==='printpass'){
   if(typeof(html)!='string'){
     json = {result:false,rows:'No se pudo crear el archivo pdf.'};
     rs.send(json);
@@ -56,6 +60,8 @@ router.post('/', (rq, rs, n)=>{
       rs.send(json);
     });
   }
+}
+else rs.status(404).end();
 });
 
 module.exports = router;
