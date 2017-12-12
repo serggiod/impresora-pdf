@@ -5,57 +5,62 @@ var fileSys = require('fs');
 var htmlPdf = require('html-pdf');
 var libPath = require('path');
 
-router.get('/', (rq, rs, n)=>{
-  rs.send('Impresora PDF');
-});
-
-router.get('/download/:pdffile/:pdfname?',(rq,rs,n)=>{
-  file = libPath.join(__dirname,'../download/' + rq.params.pdffile + '.pdf');
-  name = rq.params.pdfname;
-  if(!name) name = 'file-name.pdf';
-  rs.set('Content-Type', 'application/force-download'); 
-  rs.set('Content-Type','application/download');
-  rs.set('Content-Disposition', 'attachment; filename=' + name);
-  rs.set('Content-Transfer-Encoding', 'binary');
-  rs.sendFile(file,null,(e)=>{
-    if(e){
-      rs.status(404).end();
-      console.log('No se ha descargado el archivo ' + file + '.');
-    }
-    if(!e) fileSys.unlink(file,()=>{
-      console.log('Se ha descargado el archivo ' + file + '.');  
-    });
-  });
-});
-
 router.post('/', (rq, rs, n)=>{
-  let file = 'download/pdf' + uniqid();
+  let file = libPath.join(__dirname,'/../','download/' + uniqid() + '.pdf');
   let html = rq.body;
-  if(typeof(html)!='string'){
-    json = {result:false,rows:'No se pudo crear el archivo pdf.'};
-    rs.send(json);
-  }
-  if(typeof(html)==='string'){
-    config = {
-      format: 'A4',
-      orientation: 'portrait',
-      width: '21cm',
-      height: '29.7cm',
-      border: {
-        top:   '0.8cm',
-        right: '0.8cm',
-        bottom:'0.8cm',
-        left:  '0.8cm'
-      },
-    };
-    htmlPdf
-    .create(html,config)
-    .toFile(libPath.join(__dirname,'/../',file + '.pdf'),(e,r)=>{
-      if(e===null) json = {result:true,rows:'https:\/\/' + rq.headers.host + '/impresora-pdf/' + file + '/file-name.pdf'};
-      else json = {result:false,rows:'No se pudo crear el archivo pdf.'};
+  let user = rq.headers['Pragma-User'];
+  let pass = rq.headers['Pragma-Pass'];
+
+  if(user === '' && pass=== ''){
+    if(typeof(html)!='string'){
+      json = {result:false,rows:'No se pudo crear el archivo pdf.'};
       rs.send(json);
-    });
-  }
+    }
+
+    if(typeof(html)==='string'){
+      config = {
+        format: 'A4',
+        orientation: 'portrait',
+        width: '21cm',
+        height: '29.7cm',
+        border: {
+          top:   '0.8cm',
+          right: '0.8cm',
+          bottom:'0.8cm',
+          left:  '0.8cm'
+        },
+      };
+      htmlPdf
+      .create(html,config)
+      .toFile(file,(e,r)=>{
+
+        if(e===null){
+          rs.set('Content-Type', 'application/force-download'); 
+          rs.set('Content-Type', 'application/download');
+          rs.set('Content-Disposition', 'attachment; filename=file.pdf');
+          rs.set('Content-Transfer-Encoding', 'binary');
+          rs.sendFile(file,null,(e)=>{
+            if(!e) fileSys.unlink(file,()=>{
+              console.log('Se ha descargado el archivo ' + file + '.');  
+            });
+            if(e){
+              rs.status(404).end();
+              console.log('No se ha descargado el archivo ' + file + '.');
+            }
+          });
+        } 
+        else {
+          rs.status(404).end();
+          console.log('No se ha descargado el archivo ' + file + '.');
+        }
+      
+      });
+    }
+  } else rs.status(404).end();
+});
+
+router.all('/', (rq, rs, n)=>{
+  rs.status(404).end();
 });
 
 module.exports = router;
