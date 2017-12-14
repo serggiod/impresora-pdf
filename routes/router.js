@@ -4,19 +4,15 @@ var uniqid  = require('uniqid');
 var fileSys = require('fs');
 var htmlPdf = require('html-pdf');
 var libPath = require('path');
+var login   = require('passwd');
 
 router.post('/', (rq, rs, n)=>{
-  let file = libPath.join(__dirname,'/../','download/' + uniqid() + '.pdf');
   let html = rq.body;
-  let user = rq.headers['Pragma-User'];
-  let pass = rq.headers['Pragma-Pass'];
-
-  if(user === '' && pass=== ''){
-    if(typeof(html)!='string'){
-      json = {result:false,rows:'No se pudo crear el archivo pdf.'};
-      rs.send(json);
-    }
-
+  let user = rq.headers['pragma-user'];
+  let pass = rq.headers['pragma-pass'];
+  
+  if(user === login.user && pass === login.pass){
+    if(typeof(html)!='string') rs.status(404).end();
     if(typeof(html)==='string'){
       config = {
         format: 'A4',
@@ -31,35 +27,16 @@ router.post('/', (rq, rs, n)=>{
         },
       };
       htmlPdf
-      .create(html,config)
-      .toFile(file,(e,r)=>{
-
-        if(e===null){
-          rs.set('Content-Type', 'application/force-download'); 
-          rs.set('Content-Type', 'application/download');
-          rs.set('Content-Disposition', 'attachment; filename=file.pdf');
-          rs.set('Content-Transfer-Encoding', 'binary');
-          rs.sendFile(file,null,(e)=>{
-            if(!e) fileSys.unlink(file,()=>{
-              console.log('Se ha descargado el archivo ' + file + '.');  
-            });
-            if(e){
-              rs.status(404).end();
-              console.log('No se ha descargado el archivo ' + file + '.');
-            }
-          });
-        } 
-        else {
-          rs.status(404).end();
-          console.log('No se ha descargado el archivo ' + file + '.');
-        }
-      
-      });
+        .create(html,config)
+        .toBuffer((e,b)=>{
+          if(e===null) rs.send(b.toString('base64')).end();
+          else rs.status(404).end();
+        });
     }
   } else rs.status(404).end();
 });
 
-router.all('/', (rq, rs, n)=>{
+router.all('/',(rq, rs, n)=>{
   rs.status(404).end();
 });
 
